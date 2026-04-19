@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+*.xlsx
+!template/unlisted_stocks_top10_template.xlsx
+.venv/
+venv/
+.DS_Store

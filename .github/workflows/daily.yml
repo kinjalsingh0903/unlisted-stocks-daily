@@ -1,0 +1,41 @@
+name: Daily unlisted stocks run
+
+on:
+  schedule:
+    # 7 AM IST = 1:30 AM UTC, Mondays (1) and Thursdays (4) only
+    - cron: "30 1 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run daily pipeline
+        env:
+          GMAIL_SENDER:       ${{ secrets.GMAIL_SENDER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          RECIPIENT_EMAIL:    ${{ secrets.RECIPIENT_EMAIL }}
+          SCRAPERAPI_KEY:     ${{ secrets.SCRAPERAPI_KEY }}
+        run: python main.py
+
+      - name: Upload file as artifact (backup)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unlisted_top10_${{ github.run_number }}
+          path: unlisted_top10_*.xlsx
+          if-no-files-found: ignore
